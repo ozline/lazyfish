@@ -12,12 +12,12 @@
         <div class="form-text">用作登录的密码</div>
     </div>
     <div class="form-floating mb-3">
-        <input type="password" class="form-control" placeholder="passwd" v-model="password">
+        <input class="form-control" placeholder="veryficode" v-model="verifycode">
         <label for="passwd">验证码</label>
-        <div class="form-text">验证码</div>
-        <img v-bind:src="'https://jwcjwxt1.fzu.edu.cn/plus/verifycode.asp?n=?'+num" style="height:35px;width:250px;" @click="updateVerifyCode">
+        <div class="form-text">点击图片即可刷新</div>
+        <img v-bind:src="'/cors/plus/verifycode.asp?n='+num" style="height:35px;width:250px;" @click="this.num=Math.random()">
     </div>
-    <button type="submit" class="btn btn-outline-primary btn-lg" @click="updateVerifyCode">登录</button>
+    <button type="submit" class="btn btn-outline-primary btn-lg" @click="login">登录</button>
     <!-- <router-link to="/user/register" class="btn btn-outline-danger btn-lg" style="margin-left:20px;">注册</router-link> -->
 
     <!-- Modal -->
@@ -47,18 +47,20 @@ export default {
         return {
             username: '',
             password: '',
+            verifycode: '',
             msg: "NULL",
             msgTitle: "NULL",
             num:0
         }
     },
     methods: {
-        updateVerifyCode(){
-            this.num=Math.random();
-            console.log(this.num)
-            // console.log(this.$cookies.get("ASPSESSIONIDSUBSBRSS"))
-            console.log(this.$cookies.keys())
-            console.log(document.cookie)
+        login(){
+            var data = "muser="+this.username+"&passwd="+this.password+"&Verifycode="+this.verifycode
+            this.axios.post("/cors/logincheck.asp",data).then((res)=>{
+                console.log(res.data)
+                console.log(res.status)
+                console.log(res.headers)
+            })
         }
     }
 }
