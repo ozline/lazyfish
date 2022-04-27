@@ -4,7 +4,7 @@ import router from './router'
 import VueCookies from 'vue-cookies'
 import VueAxios from 'vue-axios'
 import axios from 'axios'
-import TDesign from 'tdesign-mobile-vue'
+import TDesign from 'tdesign-vue-next'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
