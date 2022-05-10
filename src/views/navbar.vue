@@ -20,7 +20,7 @@
                         </t-submenu>
                         <t-divider />
                         <t-menu-item value="item1"> 上闲置 </t-menu-item>
-                        <t-menu-item value="item2"> 操作指引 </t-menu-item>
+                        <!-- <t-menu-item value="item2"> 操作指引 </t-menu-item>
                         <t-menu-item value="item3"> 联系我们 </t-menu-item>
                         <t-menu-item value="item4" :disabled="true"> 调度平台 </t-menu-item>
                         <t-menu-item value="item5"> 精准监控 </t-menu-item>
@@ -28,7 +28,7 @@
                         <t-menu-item value="item7"> 个人中心 </t-menu-item>
                         <t-menu-item value="item8"> 视频区 </t-menu-item>
                         <t-menu-item value="item9"> 资源编辑 </t-menu-item>
-                        <t-menu-item value="item9"> 资源编辑 </t-menu-item>
+                        <t-menu-item value="item9"> 资源编辑 </t-menu-item> -->
                     </t-menu>
                 </t-aside>
                 <t-layout>
