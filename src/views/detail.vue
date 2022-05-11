@@ -30,5 +30,27 @@
 
 export default {
     name: 'ItemAdd',
+    data(){
+        return {
+            id : -1,
+        }
+    },
+    watch:{
+        $route:{
+            immediate:true,
+            handler(){
+                if(this.$route.query.id){
+                    this.type = this.$route.query.id
+                    this.category = this.$store.state.categories.get(Number(this.$route.query.id))
+                    this.getItemInfo()
+                }
+            }
+        }
+    },
+    methods:{
+        getItemInfo(){
+
+        }
+    }
 }
 </script>

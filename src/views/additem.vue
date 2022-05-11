@@ -2,7 +2,7 @@
 <div style="margin:30px;">
     <h1>上架物品</h1>
     <t-row  justify="center" style="margin-top:30px;">
-        <t-col :span="4">
+        <t-col :span="5">
             <h4>实物图</h4>
             <div class="tdesign-upload-item">
                 <t-upload

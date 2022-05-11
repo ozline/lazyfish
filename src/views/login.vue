@@ -30,7 +30,7 @@
         <div class="d-grid gap-2">
             <button type="button" class="btn btn-primary" @click="login" style="margin-top:36px;height:48px;">登录</button>
         </div>
-        <button type="submit" class="btn btn-outline-danger btn-lg" @click="getCookie" style="margin-left:20px;margin-top:48px;">刷新Cookie</button>
+        <!-- <button type="submit" class="btn btn-outline-danger btn-lg" @click="getCookie" style="margin-left:20px;margin-top:48px;">刷新Cookie</button> -->
         <!-- <router-link to="/user/register" class="btn btn-outline-danger btn-lg" style="margin-left:20px;">注册</router-link> -->
     </div>
     <!-- Modal -->
@@ -84,21 +84,38 @@ export default {
             data.append("asp",document.cookie) //ASPSESSIONID 用于登录验证
             // var data = "muser="+this.username+"&passwd="+this.password+"&Verifycode="+this.verifycode
 
-            MessagePlugin.loading("正在登录中")
+            //TODO:一共需要请求3次。。感觉可以优化一下？
+            var msg = MessagePlugin.loading("正在登录中")
             this.axios.put("/api/user/activate",data).then((res)=>{
                 var dataReturn = JSON.parse(JSON.stringify(res.data))
                 if((dataReturn['msg']=="该学号已经激活过" && dataReturn['code']==401) || dataReturn['code']==200){
                     this.axios.post('/api/toLogin',data).then((res)=>{
                         dataReturn = JSON.parse(JSON.stringify(res.data))
                         if(dataReturn['code']==200){
+                            MessagePlugin.close(msg)
+                            var token = dataReturn['data']['token']
+                            if(token!=null && token!=''){
+                                this.$cookies.set("token",token)
+                                this.axios.get("/api/user/getUserById",{
+                                    headers:{
+                                        "token" : token,
+                                    }
+                                }).then((res)=>{
+                                    dataReturn = JSON.parse(JSON.stringify(res.data))
+                                    this.$store.state.userData = dataReturn['data']
+                                    console.log(this.$store.state.userData)
+                                })
+                            }
+                            this.$store.state.login = true
                             MessagePlugin.success("登录成功，即将跳转页面")
-                            this.$cookies.set("token",dataReturn['data']['token'])
                             this.$router.push("/")
                         }else{
+                            MessagePlugin.close(msg)
                             MessagePlugin.error("登录失败："+dataReturn['msg'])
                         }
                     })
                 }else{
+                    MessagePlugin.close(msg)
                     MessagePlugin.error("登录失败："+dataReturn['msg'])
                 }
             })
