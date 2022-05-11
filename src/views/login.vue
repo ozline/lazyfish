@@ -1,7 +1,7 @@
 <template>
 <div>
     <div style="margin:30px;">
-        <h2>登录</h2>
+        <h1>登录</h1>
         <div class="form-floating g-2" style="margin-top:26px;">
             <input class="form-control" placeholder="学号" v-model="username">
             <label for="username">用户名</label>
@@ -30,7 +30,7 @@
         <div class="d-grid gap-2">
             <button type="button" class="btn btn-primary" @click="login" style="margin-top:36px;height:48px;">登录</button>
         </div>
-        <!-- <button type="submit" class="btn btn-outline-danger btn-lg" @click="getCookie" style="margin-left:20px;margin-top:48px;">刷新Cookie</button> -->
+        <button type="submit" class="btn btn-outline-danger btn-lg" @click="getCookie" style="margin-left:20px;margin-top:48px;">刷新Cookie</button>
         <!-- <router-link to="/user/register" class="btn btn-outline-danger btn-lg" style="margin-left:20px;">注册</router-link> -->
     </div>
     <!-- Modal -->
@@ -53,7 +53,11 @@
 </div>
 </template>
 
+
 <script>
+
+import { MessagePlugin } from 'tdesign-vue-next';
+
 export default {
     name: 'UserLogin',
     data(){
@@ -72,20 +76,33 @@ export default {
             this.localcookie=document.cookie
         },
         login(){
-            var data = "muser="+this.username+"&passwd="+this.password+"&Verifycode="+this.verifycode
-            this.axios.post("/cors/logincheck.asp",data).then((res)=>{
-                console.log(res.data)
-                console.log(res.status)
-                console.log(res.headers)
+            var data = new FormData()
+            data.append("username",this.username) //学号
+            data.append("muser",this.username) //学号
+            data.append("passwd",this.password) //密码
+            data.append("verifyCode",this.verifycode) //验证码
+            data.append("asp",document.cookie) //ASPSESSIONID 用于登录验证
+            // var data = "muser="+this.username+"&passwd="+this.password+"&Verifycode="+this.verifycode
+
+            MessagePlugin.loading("正在登录中")
+            this.axios.put("/api/user/activate",data).then((res)=>{
+                var dataReturn = JSON.parse(JSON.stringify(res.data))
+                if((dataReturn['msg']=="该学号已经激活过" && dataReturn['code']==401) || dataReturn['code']==200){
+                    this.axios.post('/api/toLogin',data).then((res)=>{
+                        dataReturn = JSON.parse(JSON.stringify(res.data))
+                        if(dataReturn['code']==200){
+                            MessagePlugin.success("登录成功，即将跳转页面")
+                            this.$cookies.set("token",dataReturn['data']['token'])
+                            this.$router.push("/")
+                        }else{
+                            MessagePlugin.error("登录失败："+dataReturn['msg'])
+                        }
+                    })
+                }else{
+                    MessagePlugin.error("登录失败："+dataReturn['msg'])
+                }
             })
         }
     }
 }
 </script>
-
-<style>
-    /* ::placeholder{
-        font-size:14px;
-        line-height: 30px;
-    } */
-</style>

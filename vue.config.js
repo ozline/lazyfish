@@ -15,6 +15,13 @@ module.exports = {
         pathRewrite: {
           '^/cors': ''
         }
+      },
+      '/api': {
+        target: 'http://175.178.96.246:8080/',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/api': ''
+        }
       }
     }
   }

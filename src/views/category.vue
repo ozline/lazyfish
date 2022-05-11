@@ -1,5 +1,6 @@
 <template>
-<div>
+<div style="margin:30px;">
+    <h1>商品分类 - {{ this.$route.query.type }}</h1>
     <div class="row">
         <item
             v-for="index in pageSize"
