@@ -58,10 +58,10 @@
             <h4>价格 & 操作</h4>
             <div style="margin-top:30px;">
                 <div style="margin-top:20px;">
-                    <t-input-number v-model="value3" :min="0" placeholder="原价"/>
+                    <t-input-number v-model="oldPrice" :min="0" placeholder="原价"/>
                 </div>
                 <div style="margin-top:20px;">
-                    <t-input-number v-model="value3" :min="0" placeholder="现价"/>
+                    <t-input-number v-model="nowPrice" :min="0" placeholder="现价"/>
                 </div>
                 <div style="margin-top:150px;">
                     <!-- <button type="button" class="btn btn-primary">登录</button> -->
@@ -98,6 +98,8 @@ export default {
                 { label: '其他', value: '4' },
             ],
             categoryChoose : [],
+            oldPrice: 0,
+            nowPrice: 0,
         }
     },
     methods:{

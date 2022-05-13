@@ -11,7 +11,7 @@
         <t-dropdown :min-column-width="135" trigger="click">
             <template #dropdown>
               <t-dropdown-menu>
-                <t-dropdown-item class="operations-dropdown-container-item" @click="handleNav('/user/index')">
+                <t-dropdown-item class="operations-dropdown-container-item" @click="changePage('space?id='+this.$store.state.userData.id)">
                   <t-icon name="user-circle"></t-icon>个人中心
                 </t-dropdown-item>
                 <t-dropdown-item class="operations-dropdown-container-item" @click="logout">
@@ -70,6 +70,21 @@
             </template>
             上闲置
           </t-menu-item>
+          <t-submenu value="myaccount" title="我的账号" v-show="login">
+            <template #icon>
+              <t-icon name="server" />
+            </template>
+            <t-menu-item value="myaccount" @click="changePage('space?id='+this.$store.state.userData.id)">
+              <t-icon name="user-circle"></t-icon>个人中心
+            </t-menu-item>
+            <t-menu-item value="address" @click="changePage('address')">
+              <t-icon name="view-list"></t-icon>地址管理
+            </t-menu-item>
+            <t-menu-item value="logout" @click="logout">
+              <t-icon name="poweroff"></t-icon>退出登录
+            </t-menu-item>
+          </t-submenu>
+          <t-divider />
           <t-menu-item value="item2" @click="changePage('about')">
             <template #icon>
               <t-icon name="help-circle" />
@@ -128,20 +143,67 @@ export default {
       MessagePlugin.close(msg)
     })
   },
+  created(){
+    var token = this.$cookies.get("token")
+    if(token!=null && token!=''){
+      this.axios.defaults.headers.common['token'] = token
+      this.axios.get("/api/user/getUserById").then((res)=>{
+        var dataReturn = JSON.parse(JSON.stringify(res.data))
+        if(dataReturn['code']==200){
+            MessagePlugin.success("获取信息成功")
+            this.$store.state.userData = dataReturn['data']
+            this.$store.state.login = true
+        }else{
+            // MessagePlugin.error("获取信息失败:"+dataReturn['msg'])
+            this.$store.state.userData = []
+            this.$store.state.login = false
+        }
+      })
+      this.axios.defaults.headers.common['token'] = ''
+    }
+  },
   methods: {
     changePage(newpage){
       this.$router.push('/'+newpage)
-      // MessagePlugin.success(`切换页面成功`,500)
     },
     changeCollapsed(){
       this.collapsed = !this.collapsed
       this.iconName = this.collapsed ? 'chevron-right' : 'chevron-left'
     },
     logout(){
-      this.login = false
-      MessagePlugin.success(`退出登录成功，即将回到登录页`)
-      this.changePage("login")
-    }
+      const confirmDia = this.$dialog.confirm({
+        header: '敏感操作提示',
+        body: '你确定要退出账号吗?',
+        theme: "warning",
+        confirmBtn: '确认',
+        cancelBtn: '取消',
+        onConfirm: ({ e }) => {
+          console.log('e: ', e);
+          var msg = MessagePlugin.loading("正在退出")
+
+          this.axios.defaults.headers.common['token'] = this.$cookies.get("token")
+          this.axios.put("/api/user/logout").then((res)=>{
+            var dataReturn = JSON.parse(JSON.stringify(res.data))
+            if(dataReturn['code']==200){
+              this.login = false;
+              MessagePlugin.close(msg)
+              MessagePlugin.success(`退出登录成功，即将回到登录页`)
+              this.changePage("login")
+            }else{
+              MessagePlugin.close(msg)
+              MessagePlugin.error(`退出登录失败:`+dataReturn['msg'])
+            }
+          })
+          this.axios.defaults.headers.common['token'] = ''
+          confirmDia.destroy();
+        },
+        onClose: ({ e, trigger }) => {
+          console.log('e: ', e);
+          console.log('trigger: ', trigger);
+          confirmDia.hide();
+        },
+      });
+    },
   },
   watch:{
     $store:{
@@ -167,6 +229,14 @@ export default {
 
 :root{
   --td-bg-color-page:#fff !important;
+  --td-brand-color-8:#fc7120 !important;
+  --td-brand-color-7: #fc7120 !important;
+  --td-brand-color-active: #f66300 !important;
+}
+
+.btn-primary{
+  background-color: #fc7120 !important;
+  border-color: #fc7120 !important;
 }
 </style>
 

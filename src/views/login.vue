@@ -31,24 +31,6 @@
             <button type="button" class="btn btn-primary" @click="login" style="margin-top:36px;height:48px;">登录</button>
         </div>
         <!-- <button type="submit" class="btn btn-outline-danger btn-lg" @click="getCookie" style="margin-left:20px;margin-top:48px;">刷新Cookie</button> -->
-        <!-- <router-link to="/user/register" class="btn btn-outline-danger btn-lg" style="margin-left:20px;">注册</router-link> -->
-    </div>
-    <!-- Modal -->
-    <div class="modal fade" id="modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="staticBackdropLabel">{{ msgTitle }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                {{ msg }}
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">我知道了</button>
-            </div>
-            </div>
-        </div>
     </div>
 </div>
 </template>
@@ -96,7 +78,7 @@ export default {
                             var token = dataReturn['data']['token']
                             if(token!=null && token!=''){
                                 this.$cookies.set("token",token)
-                                this.axios.get("/api/user/getUserById",{
+                                this.axios.get("/api/user/user",{
                                     headers:{
                                         "token" : token,
                                     }
