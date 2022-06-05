@@ -6,21 +6,21 @@
             v-for="(addr,index) in data"
             v-bind:key="addr"
         >
-            <t-list-item-meta :image="avatar" :title="'收货地址 - '+(index+1)" :description="addr.address" />
+            <t-list-item-meta :title="'收货地址 - '+(index+1)" :description="addr.address" />
             <template #action>
             <span>
                 <span class="badge bg-secondary" v-show="addr.isDefault" >默认收货地址</span>
                 <t-button variant="text" v-show="!addr.isDefault" @click="setDefaultAddress(addr.id,addr.address)">设为默认地址</t-button>
-                <t-button variant="text" @click="visibleModal=true;current=addr.id;newAddress=addr.address">更新地址</t-button>
-                <t-button variant="text" @click="deleteAddress(addr.id)" v-show="false">删除</t-button>
+                <t-button variant="text" @click="visibleModalUpdate=true;current=addr.id;newAddress=addr.address;isDeafult=addr.isDefault">更新地址</t-button>
+                <t-button variant="text" @click="deleteAddress(addr.id)" >删除</t-button>
             </span>
             </template>
         </t-list-item>
     </t-list>
     <div style="margin-bottom: 16px" />
-    <t-button size="large" variant="outline" style="float:right;" @click="visibleModal=true;newAddress=''"> 新增收货地址 </t-button>
+    <t-button size="large" variant="outline" style="float:right;" @click="visibleModalAdd=true;newAddress=''"> 新增收货地址 </t-button>
     <t-dialog
-        v-model:visible="visibleModal"
+        v-model:visible="visibleModalUpdate"
         header="修改地址"
         mode="modal"
         draggable
@@ -36,7 +36,7 @@
         </template>
     </t-dialog>
     <t-dialog
-        v-model:visible="visibleModal"
+        v-model:visible="visibleModalAdd"
         header="新增收货地址"
         mode="modal"
         draggable
@@ -61,13 +61,14 @@ export default {
     name: 'AccountAddress',
     data(){
         return{
-            id: -1,
             data : [],
             avatar: "https://tdesign.gtimg.com/site/avatar.jpg",
             modify: this.id==this.$store.state.userData.id,
-            visibleModal : false,
+            visibleModalUpdate : false,
+            visibleModalAdd: false,
             current : -1,
-            newAddress : ""
+            newAddress : "",
+            isDeafult : false,
         }
     },
     created(){
@@ -80,7 +81,7 @@ export default {
             this.axios.get("/api/user/showAddr").then((res)=>{
                 var dataReturn = JSON.parse(JSON.stringify(res.data))
                 if(dataReturn['code']==200){
-                    MessagePlugin.success("获取信息成功")
+                    // MessagePlugin.success("获取信息成功")
                     this.data = dataReturn['data']
                 }else{
                     MessagePlugin.error("获取信息失败:"+dataReturn['msg'])
@@ -92,9 +93,11 @@ export default {
         updateAddress(){
             var data = new FormData()
             data.append("address",this.newAddress)
-            data.append("id",this.current)
+            data.append("id",Number(this.current))
+            data.append("isDefault",this.isDeafult)
+
             this.axios.defaults.headers.common['token'] = this.$cookies.get("token")
-            this.axios.put("/api/user/updateAddr",data).then((res)=>{
+            this.axios.post("/api/user/updateAddr",data).then((res)=>{
                 var dataReturn = JSON.parse(JSON.stringify(res.data))
                 if(dataReturn['code']==200){
                     MessagePlugin.success("修改地址成功")
@@ -103,7 +106,7 @@ export default {
                     MessagePlugin.error("修改失败:"+dataReturn['msg'])
                 }
             })
-            this.visibleModal=false
+            this.visibleModalUpdate=false
             this.axios.defaults.headers.common['token'] = ''
         },
         deleteAddress(id){
@@ -114,15 +117,26 @@ export default {
                 confirmBtn: '确认',
                 cancelBtn: '取消',
                 onConfirm: ({ e }) => {
-                    console.log('e: ', e);
-                    console.log('e: ', id);
-                    this.axios.delete("/api/user/deleteAddr")
+                    console.log('e: ', e)
+
+
+                    this.axios.defaults.headers.common['token'] = this.$cookies.get("token")
+                    this.axios.delete("/api/user/deleteAddr/"+id).then((res)=>{
+                        var dataReturn = JSON.parse(JSON.stringify(res.data))
+                        if(dataReturn['code']==200){
+                            MessagePlugin.success("删除收货地址成功")
+                            this.refreshAddress()
+                        }else{
+                            MessagePlugin.error("删除失败:"+dataReturn['msg'])
+                        }
+                    })
                     confirmDia.destroy();
                 },
                 onClose: ({ e, trigger }) => {
                 console.log('e: ', e);
                 console.log('trigger: ', trigger);
                 confirmDia.hide();
+                this.axios.defaults.headers.common['token'] = ''
                 },
             });
         },
@@ -144,7 +158,7 @@ export default {
                     MessagePlugin.error("新增失败:"+dataReturn['msg'])
                 }
             })
-            this.visibleModal=false
+            this.visibleModalAdd=false
             this.axios.defaults.headers.common['token'] = ''
         },
         setDefaultAddress(id,addr){
@@ -152,8 +166,9 @@ export default {
             data.append("address",addr)
             data.append("id",Number(id))
             data.append("isDefault",true)
+
             this.axios.defaults.headers.common['token'] = this.$cookies.get("token")
-            this.axios.put("/api/user/updateAddr",data).then((res)=>{
+            this.axios.post("/api/user/updateAddr",data).then((res)=>{
                 var dataReturn = JSON.parse(JSON.stringify(res.data))
                 if(dataReturn['code']==200){
                     MessagePlugin.success("设为默认收货地址成功")
@@ -162,7 +177,6 @@ export default {
                     MessagePlugin.error("设置失败:"+dataReturn['msg'])
                 }
             })
-            this.visibleModal=false
             this.axios.defaults.headers.common['token'] = ''
         }
     },

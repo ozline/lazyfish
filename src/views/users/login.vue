@@ -26,7 +26,6 @@
             </div>
             <div class="form-text">点击图片刷新</div>
         </div>
-        <!-- <div class="form-text">{{ localcookie }}</div> -->
         <div class="d-grid gap-2">
             <button type="button" class="btn btn-primary" @click="login" style="margin-top:36px;height:48px;">登录</button>
         </div>
@@ -66,17 +65,19 @@ export default {
             data.append("asp",document.cookie) //ASPSESSIONID 用于登录验证
             // var data = "muser="+this.username+"&passwd="+this.password+"&Verifycode="+this.verifycode
 
-            //TODO:一共需要请求3次。。感觉可以优化一下？
+            //TODO:一共需要请求4次。。感觉可以优化一下？
+
+            //1:激活 2:登录 3:获取用户信息 4:验证是否是管理员
             var msg = MessagePlugin.loading("正在登录中")
-            this.axios.put("/api/user/activate",data).then((res)=>{
+            this.axios.post("/api/user/activate",data).then((res)=>{
                 var dataReturn = JSON.parse(JSON.stringify(res.data))
                 if((dataReturn['msg']=="该学号已经激活过" && dataReturn['code']==401) || dataReturn['code']==200){
                     this.axios.post('/api/toLogin',data).then((res)=>{
                         dataReturn = JSON.parse(JSON.stringify(res.data))
                         if(dataReturn['code']==200){
-                            MessagePlugin.close(msg)
                             var token = dataReturn['data']['token']
                             if(token!=null && token!=''){
+                                //利用token读取用户信息
                                 this.$cookies.set("token",token)
                                 this.axios.get("/api/user/user",{
                                     headers:{
@@ -85,12 +86,26 @@ export default {
                                 }).then((res)=>{
                                     dataReturn = JSON.parse(JSON.stringify(res.data))
                                     this.$store.state.userData = dataReturn['data']
-                                    console.log(this.$store.state.userData)
+                                    this.axios.get("/api/test/admin",{
+                                        headers:{
+                                            "token":token,
+                                        }
+                                    }).then((res)=>{
+                                        if(res.data=="hello admin"){
+                                            this.$store.state.userStatus = 1 //1表示为管理员
+                                        }
+
+                                        //登录成功
+                                        MessagePlugin.close(msg)
+                                        this.$store.state.login = true
+                                        MessagePlugin.success("登录成功，即将跳转页面")
+                                        this.$router.push("/")
+                                    })
                                 })
+                            }else{
+                                MessagePlugin.close(msg)
+                                MessagePlugin.error("登录失败:Token无法获取")
                             }
-                            this.$store.state.login = true
-                            MessagePlugin.success("登录成功，即将跳转页面")
-                            this.$router.push("/")
                         }else{
                             MessagePlugin.close(msg)
                             MessagePlugin.error("登录失败："+dataReturn['msg'])
@@ -104,4 +119,4 @@ export default {
         }
     }
 }
-</script>
+</script> 

@@ -31,8 +31,8 @@
           </t-dropdown>
         <template #operations>
           <div class="d-flex justify-content-start" style="margin-left:5px;margin-right:5px;">
-            <input class="form-control me-2" placeholder="商品名..">
-            <t-button size="large" variant="outline"> 搜索 </t-button>
+            <t-input size="large" placeholder="商品名.." v-model="searchKey" />
+            <t-button size="large" variant="outline" @click="search()"> 搜索 </t-button>
           </div>
         </template>
       </t-head-menu>
@@ -72,7 +72,7 @@
           </t-menu-item>
           <t-submenu value="myaccount" title="我的账号" v-show="login">
             <template #icon>
-              <t-icon name="server" />
+              <t-icon name="view-list" />
             </template>
             <t-menu-item value="myaccount" @click="changePage('space?id='+this.$store.state.userData.id)">
               <t-icon name="user-circle"></t-icon>个人中心
@@ -80,17 +80,34 @@
             <t-menu-item value="address" @click="changePage('address')">
               <t-icon name="view-list"></t-icon>地址管理
             </t-menu-item>
+            <t-menu-item value="mypurchase" @click="changePage('mypurchase')">
+              <t-icon name="order-descending"></t-icon>我的购买
+            </t-menu-item>
+            <t-menu-item value="mysell" @click="changePage('mysell')">
+              <t-icon name="order-ascending"></t-icon>我的出售
+            </t-menu-item>
             <t-menu-item value="logout" @click="logout">
               <t-icon name="poweroff"></t-icon>退出登录
             </t-menu-item>
           </t-submenu>
+          <t-submenu value="admin" title="管理员" v-show="status">
+            <template #icon>
+              <t-icon name="user" />
+            </template>
+            <t-menu-item value="reviewitem" @click="changePage('review')">
+              <t-icon name="tools"></t-icon>商品审核
+            </t-menu-item>
+            <t-menu-item value="blocklist" @click="changePage('blocklist')">
+              <t-icon name="usergroup"></t-icon>小黑屋管理
+            </t-menu-item>
+          </t-submenu>
           <t-divider />
-          <t-menu-item value="item2" @click="changePage('about')">
+          <!-- <t-menu-item value="item2" @click="changePage('about')">
             <template #icon>
               <t-icon name="help-circle" />
             </template>
             操作指引
-          </t-menu-item>
+          </t-menu-item> -->
           <t-menu-item value="item3" @click="changePage('about')">
             <template #icon>
               <t-icon name="call" />
@@ -126,6 +143,8 @@ export default {
       iconName : 'chevron-left',
       username : "-1",
       login : false,
+      status: 0,
+      searchKey: "",
     }
   },
   beforeCreate(){
@@ -139,22 +158,29 @@ export default {
       this.$store.state.categories_raw = dataReturn['data']
       for(i in dataReturn['data']){
         this.$store.state.categories.set(dataReturn['data'][i].id,dataReturn['data'][i].name)
+
+        var obj = {}
+        obj.label = dataReturn['data'][i].name
+        obj.value = dataReturn['data'][i].id
+        this.$store.state.categories_upload.push(obj)
       }
       MessagePlugin.close(msg)
     })
+
+    console.log(this.$store.state.categories_upload)
   },
   created(){
     var token = this.$cookies.get("token")
     if(token!=null && token!=''){
       this.axios.defaults.headers.common['token'] = token
-      this.axios.get("/api/user/getUserById").then((res)=>{
+      this.axios.get("/api/user/user").then((res)=>{
         var dataReturn = JSON.parse(JSON.stringify(res.data))
         if(dataReturn['code']==200){
             MessagePlugin.success("获取信息成功")
             this.$store.state.userData = dataReturn['data']
             this.$store.state.login = true
+            this.$store.state.userStatus = dataReturn['data']['admin'] ? 1 : 0
         }else{
-            // MessagePlugin.error("获取信息失败:"+dataReturn['msg'])
             this.$store.state.userData = []
             this.$store.state.login = false
         }
@@ -169,6 +195,13 @@ export default {
     changeCollapsed(){
       this.collapsed = !this.collapsed
       this.iconName = this.collapsed ? 'chevron-right' : 'chevron-left'
+    },
+    search(){
+      if(this.searchKey.length>0){
+        this.changePage('search?key='+this.searchKey)
+      }else{
+        MessagePlugin.error("请输入正确的关键词")
+      }
     },
     logout(){
       const confirmDia = this.$dialog.confirm({
@@ -185,14 +218,18 @@ export default {
           this.axios.put("/api/user/logout").then((res)=>{
             var dataReturn = JSON.parse(JSON.stringify(res.data))
             if(dataReturn['code']==200){
-              this.login = false;
-              MessagePlugin.close(msg)
               MessagePlugin.success(`退出登录成功，即将回到登录页`)
-              this.changePage("login")
             }else{
-              MessagePlugin.close(msg)
               MessagePlugin.error(`退出登录失败:`+dataReturn['msg'])
             }
+
+            MessagePlugin.close(msg)
+            this.$cookies.set("token","")
+            this.$store.state.login = false
+            this.$store.state.userStatus = 0
+            this.login = false
+            this.status = 0
+            this.changePage("login")
           })
           this.axios.defaults.headers.common['token'] = ''
           confirmDia.destroy();
@@ -216,6 +253,9 @@ export default {
           if(this.$store.state.login){
             this.login = this.$store.state.login
           }
+          if(this.$store.state.userStatus){
+            this.status = this.$store.state.userStatus
+          }
       }
     }
   }
@@ -229,6 +269,9 @@ export default {
 
 :root{
   --td-bg-color-page:#fff !important;
+}
+
+:root{
   --td-brand-color-8:#fc7120 !important;
   --td-brand-color-7: #fc7120 !important;
   --td-brand-color-active: #f66300 !important;

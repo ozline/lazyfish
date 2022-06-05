@@ -2,20 +2,17 @@
 <div style="margin:30px;">
     <h1>商品分类 - {{ category }}</h1>
     <div class="row">
-        <!-- <item
+        <item
             v-for="data in datas"
             v-bind:key="data.id"
-        ></item> -->
-        <item
-            v-for="index in pageSize"
-            v-bind:key="index"
-            v-bind:id="1523897667586244609"
+            v-bind:data=data
+            v-bind:id="data.id"
         ></item>
     </div>
     <t-pagination
         style="margin-top:20px"
-        :total="36"
-        :default-current="2"
+        :total="total"
+        :default-current="1"
         :default-page-size="10"
         show-first-and-last-page-btn
         @current-change="onCurrentChange"
@@ -27,7 +24,7 @@
 
 <script>
 
-import item from '../components/item.vue'
+import item from '../../components/item.vue'
 import { MessagePlugin } from 'tdesign-vue-next';
 
 export default {
@@ -39,7 +36,7 @@ export default {
             category: this.$store.state.categories.get(Number(this.$route.query.type)),
             type : -1,
             datas : [],
-            num : -1,
+            total : 0,
         }
     },
     components:{
@@ -59,43 +56,35 @@ export default {
     },
     methods:{
         initcategory(){
-            // var msg = MessagePlugin.loading("正在读取分类:"+this.category)
+            var msg = MessagePlugin.loading("正在读取分类:"+this.category)
             var data = new FormData()
             data.append("page",this.current)
             data.append("size",this.pageSize)
-            // data.append("searchKey","")
+            data.append("searchKey","") //这个参必须有
             data.append("sortType","-1")
             data.append("sortBy","price")
             data.append("type",this.category)
-            // this.axios.get("/api/commodity/search",{data}).then((res)=>{
-            //     MessagePlugin.success("读取数据完毕")
-            //     MessagePlugin.close(msg)
-            //     var dataReturn = JSON.parse(JSON.stringify(res.data))
-            //     console.log(dataReturn)
-            //     this.num = dataReturn['data']['total']
-            //     this.datas = dataReturn['data']['docList']
-            // })
-            // var request = require('request');
-            // request({
-            //     url: "/api/commodity/search",
-            //     method: "GET",
-            //     headers: {
-            //         "content-type": "multipart/form-data",
-            //     },
-            //     body: data
-            // }, function(error, response, body) {
-            //     //判断是否请求成功
-            //     if (!error && response.statusCode == 200) {
-            //         console.log(body)
-            //     }
-            // })
+
+            this.axios.post("/api/commodity/search",data).then((res)=>{
+                var dataReturn = JSON.parse(JSON.stringify(res.data))
+                if(dataReturn['code']==200){
+                    MessagePlugin.success("获取成功",500)
+                    MessagePlugin.close(msg)
+                    this.datas = dataReturn['data']['docList']
+                    this.total = dataReturn['data']['total']
+                }else{
+                    MessagePlugin.error("读取失败:"+dataReturn['msg'])
+                    MessagePlugin.close(msg)
+                }
+            })
         },
         onPageSizeChange(size){
             this.pageSize = size
-            MessagePlugin.success(`pageSize变化为${size}`)
+            this.initcategory()
         },
-        onCurrentChange(index,pageInfo){
-            MessagePlugin.success(`转到第${index}页 pageInfo:${pageInfo}`);
+        onCurrentChange(index){
+            this.current = index
+            this.initcategory()
         },
         onChange(pageInfo){
             console.log(pageInfo)

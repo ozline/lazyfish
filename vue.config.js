@@ -22,6 +22,13 @@ module.exports = {
         pathRewrite: {
           '^/api': ''
         }
+      },
+      '/img': {
+        target: 'https://gorsonpy-bucket.oss-cn-beijing.aliyuncs.com/',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/img': ''
+        }
       }
     }
   }

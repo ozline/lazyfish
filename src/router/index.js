@@ -1,13 +1,18 @@
 import { createWebHistory,createRouter } from 'vue-router'
-import Login from '../views/login.vue'
-import MainShow from '../views/mainshow.vue'
-import Detail from '../views/detail.vue'
-import Category from '../views/category.vue'
-import AddItem from '../views/additem.vue'
+import Login from '../views/users/login.vue'
+import MainShow from '../views/items/mainshow.vue'
+import Detail from '../views/items/detail.vue'
+import Category from '../views/items/category.vue'
+import AddItem from '../views/items/additem.vue'
 import AboutUs from '../views/about.vue'
 import NotFound from '../views/404.vue'
-import Space from '../views/space.vue'
-import Address from '../views/address.vue'
+import Space from '../views/users/space.vue'
+import Address from '../views/users/address.vue'
+import Mypurchase from '../views/users/mypurchase.vue'
+import Mysell from '../views/users/mysell.vue'
+import Review from '../views/admin/review.vue'
+import Search from '../views/items/search.vue'
+import BlockList from '../views/admin/blocklist.vue'
 
 const routes=[
     { path:'/', component:MainShow, meta:{ title: '首页' }},
@@ -18,6 +23,11 @@ const routes=[
     { path:'/space', component:Space, meta:{ title: '账号信息' }},
     { path:'/about', component:AboutUs, meta:{ title: '关于我们' }},
     { path:'/address', component:Address, meta:{ title: '收货地址管理' }},
+    { path:'/mypurchase', component:Mypurchase, meta:{ title: '我的购买' }},
+    { path:'/mysell', component:Mysell, meta:{ title: '我的出售' }},
+    { path:'/review', component:Review, meta:{ title: '商品审核' }},
+    { path:'/search', component:Search, meta:{ title: '搜索物品' }},
+    { path:'/blocklist', component:BlockList, meta:{ title: '封禁名单' }},
     { path:'/404', component: NotFound, meta:{ title:"404" }},
     { path:'/:pathMatch(.*)', component: NotFound, redirect:'/404'},
 ]

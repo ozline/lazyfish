@@ -2,8 +2,8 @@
     <div class="col-sm-6" style="margin-top:10px;">
         <div class="card">
         <div class="card-body">
-            <h5 class="card-title">{{ title }} 七成新的小熊饼干</h5>
-            <p class="card-text">{{ description }} 草莓味的,只吃过一块,还有1小时过期</p>
+            <h5 class="card-title" v-html="data.title"></h5>
+            <p class="card-text" >{{ data.description }}(发布ID:{{ data.userId }})</p>
             <a href="#" class="btn btn-primary" @click="changePage('detail?id='+id)">查看详情</a>
         </div>
         </div>
@@ -14,9 +14,10 @@
 
 export default {
     name: 'ItemInfo',
-    props: ["title","description","id"],
+    props: ["id","data"],
     methods: {
         changePage(newpage){
+            this.$store.state.Itemdata = this.data
             this.$router.push('/'+newpage)
         },
     },

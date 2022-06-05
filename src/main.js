@@ -22,4 +22,5 @@ app.use(VueCookies)
 app.use(TDesign)
 app.use(VueAxios,axios)
 app.use(MessagePlugin)
+
 app.mount('#app')
